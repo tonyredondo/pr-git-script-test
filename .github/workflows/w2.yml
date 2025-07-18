@@ -1,5 +1,4 @@
-name: W2
-
+name: Unshallow with fetch deepen
 on:
   push:
     branches: [ "main" ]
