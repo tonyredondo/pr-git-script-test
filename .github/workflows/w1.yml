@@ -1,4 +1,4 @@
-name: W1
+name: No unshallow (error)
 
 on:
   push:
