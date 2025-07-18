@@ -1,0 +1,23 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: git commands
+        run: |
+          echo Git log 25
+          git log --pretty=oneline -n 25
+          echo Git show
+          git show 965e8b3a4f42cf18fd65e38407bc2b81494fe124 -s --format='%H","%aI","%an","%ae","%cI","%cn","%ce","%B'
+          echo Git log
+          git log -n 1 --format=%B 965e8b3a4f42cf18fd65e38407bc2b81494fe124
