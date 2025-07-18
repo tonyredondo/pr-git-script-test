@@ -1,4 +1,4 @@
-name: W3
+name: Fetch sha directly
 
 on:
   push:
