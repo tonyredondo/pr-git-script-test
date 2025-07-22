@@ -12,13 +12,46 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # ────────────────────────────────────────────────────────────────
+      # Step: read the event-payload JSON and pull out the head SHA
+      # ────────────────────────────────────────────────────────────────
+      - name: Extract PR head SHA
+        id: pr_sha
+        run: |
+          # GITHUB_EVENT_PATH is set automatically by GitHub Actions
+          echo "Reading event payload from: $GITHUB_EVENT_PATH"
+          cat $GITHUB_EVENT_PATH
+
+          # For pull_request events, the head commit lives at .pull_request.head.sha
+          # For push events there is no pull_request object, so we fall back to .head_commit.id or .after
+          HEAD_SHA=$(jq -r '
+              if .pull_request then .pull_request.head.sha
+              elif .head_commit then .head_commit.id
+              else .after
+              end // empty
+          ' "$GITHUB_EVENT_PATH")
+
+          if [[ -z "$HEAD_SHA" ]]; then
+            echo "❌ Could not determine head SHA"; exit 1
+          fi
+
+          echo "Head SHA detected: $HEAD_SHA"
+          # Expose as a step output so later steps can reference it with steps.pr_sha.outputs.head_sha
+          echo "head_sha=$HEAD_SHA" >> "$GITHUB_OUTPUT"
+
+      # ────────────────────────────────────────────────────────────────
+      # Your existing git logic (now you can use ${{ steps.pr_sha.outputs.head_sha }})
+      # ────────────────────────────────────────────────────────────────
+
       - name: git commands
         run: |
+          HEADSHA="${{ steps.pr_sha.outputs.head_sha }}"
+          echo "Using SHA: $HEADSHA"
           echo Git fetch deepen:
           git fetch --deepen=1 --update-shallow --filter=blob:none --recurse-submodules=no $(git config --default origin --get clone.defaultRemoteName) $(git rev-parse HEAD)
           echo Git log 25:
           git log --pretty=oneline -n 25
           echo Git show:
-          git show 965e8b3a4f42cf18fd65e38407bc2b81494fe124 -s --format='%H","%aI","%an","%ae","%cI","%cn","%ce","%B'
+          git show $HEADSHA -s --format='%H","%aI","%an","%ae","%cI","%cn","%ce","%B'
           echo Git log:
-          git log -n 1 --format=%B 965e8b3a4f42cf18fd65e38407bc2b81494fe124
+          git log -n 1 --format=%B $HEADSHA
