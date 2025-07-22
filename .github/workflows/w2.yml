@@ -20,6 +20,7 @@ jobs:
         run: |
           # GITHUB_EVENT_PATH is set automatically by GitHub Actions
           echo "Reading event payload from: $GITHUB_EVENT_PATH"
+          cat $GITHUB_EVENT_PATH
 
           # For pull_request events, the head commit lives at .pull_request.head.sha
           # For push events there is no pull_request object, so we fall back to .head_commit.id or .after
